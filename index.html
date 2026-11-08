@@ -179,7 +179,7 @@ if (CFG.MODE === 'http') {
   if (_q.get('portal') !== null) { CFG.PAGE = 'public'; CFG.SLUG = _q.get('portal') || ''; }
   CFG.API_URL = localStorage.getItem('mde.api') || (/^https:\/\//.test(CFG.API_URL) ? CFG.API_URL : '');
 }
-var APPV = '2.2.0';
+var APPV = '2.3.0';
 var S = { token: null, boot: null, view: 'dashboard', params: {}, modals: [], online: navigator.onLine, busy: 0 };
 
 /* ---------------- Utilitas ---------------- */
@@ -682,7 +682,7 @@ function donut(items) {
 'use strict';
 var VIEWS = {};
 var NAV = [
-  ['Utama', [['dashboard', 'Beranda', 'home'], ['peta', 'Peta', 'map'], ['salat', 'Jadwal Salat', 'moon'], ['ai', 'Asisten AI', 'chat']]],
+  ['Utama', [['dashboard', 'Beranda', 'home'], ['yayasan', 'Dashboard Yayasan', 'chart'], ['peta', 'Peta', 'map'], ['salat', 'Jadwal Salat', 'moon'], ['ai', 'Asisten AI', 'chat']]],
   ['Keuangan', [['trx', 'Transaksi', 'wallet'], ['approvals', 'Persetujuan', 'approve'], ['reports', 'Laporan', 'chart'], ['budgets', 'Anggaran', 'calc'], ['accounts', 'Akun & Rekonsiliasi', 'db'], ['kotak', 'Hitung Kotak Amal', 'coins']]],
   ['Administrasi', [['letters', 'Persuratan', 'send'], ['docs', 'Arsip Dokumen', 'archive'], ['assets', 'Inventaris', 'box'], ['events', 'Kegiatan & Info', 'cal']]],
   ['Dakwah', [['kajian', 'Kajian & Tausiah', 'mic']]],
@@ -966,6 +966,7 @@ var LEGAL = {
 };
 function showLegal(k) { var L = LEGAL[k]; modal({ title: L[0], wide: true, body: '<div style="font-size:13.5px">' + L[1]() + '</div>', foot: '<button class="btn" data-close>Tutup</button>' }); }
 var CHANGELOG = [
+  ['2.3.0', '2026-11-07', 'Dashboard Yayasan (lisensi multi-masjid): ringkasan gabungan saldo, penerimaan & pengeluaran, saldo per dana, temuan & skor kesehatan tiap masjid, perbandingan antarmasjid, peta sebaran, CSV & cetak laporan konsolidasi; peran baru Pengurus Yayasan (pemantau); menu Jadikan Super Admin Yayasan; matriks peran pada instalasi Yayasan hanya dapat diubah Super Admin.'],
   ['2.2.0', '2026-11-07', 'Modul Kajian & Tausiah: jadwal & kajian rutin (generate otomatis sebulan), data pengisi ustadz/ustadzah, catat kehadiran jamaah L/P dengan penghitung cepat, status kehadiran & keterlambatan pengisi, penilaian jamaah, ringkasan materi, foto dokumentasi (dikompres, di Drive); evaluasi & analisis (tren, per hari, per kajian, per pengisi, rekomendasi otomatis, saran AI, cetak laporan); chart kajian di Beranda; pengingat WA ke pengisi; honor pengisi ke keuangan; jadwal kajian di portal publik.'],
   ['2.1.0', '2026-11-07', 'Peta interaktif (OpenStreetMap) + arah kiblat; foto/dokumen pendukung di semua modul (dikompres, disimpan di Google Drive, sheet hanya URL); label filter tanggal; jadwal salat online Kemenag sesuai GPS; impor CSV & tombol tambah yang jelas di modul umat; Asisten AI (Gemini) + bantuan bawaan.'],
   ['2.0.0', '2026-11-06', 'Edisi Google Apps Script + PWA: ledger double-entry, maker-checker, reversal, anggaran, rekonsiliasi, tutup buku, audit hash-chain, MFA TOTP, offline queue, portal publik, TPQ, qurban, ZIS, arsip, lisensi.'],
@@ -1549,11 +1550,11 @@ VIEWS.qurban = {
 <script>
 /* Modul sistem: pengguna & peran, audit log, sistem & lisensi, pengaturan, portal publik */
 'use strict';
-var ROLE_L = { SUPER_ADMIN: 'Super Admin Yayasan', ADMIN: 'Admin Sistem', KETUA: 'Ketua DKM', BENDAHARA: 'Bendahara', SEKRETARIS: 'Sekretaris', PETUGAS: 'Petugas / Marbot', AUDITOR: 'Auditor' };
+var ROLE_L = { SUPER_ADMIN: 'Super Admin Yayasan', ADMIN: 'Admin Sistem', KETUA: 'Ketua DKM', BENDAHARA: 'Bendahara', SEKRETARIS: 'Sekretaris', PETUGAS: 'Petugas / Marbot', AUDITOR: 'Auditor', PENGURUS_YAYASAN: 'Pengurus Yayasan (pemantau)' };
 var PERM_L = {
   'dashboard.read': 'Lihat beranda', 'finance.transaction.read': 'Lihat semua transaksi', 'finance.transaction.read_own': 'Lihat transaksi sendiri', 'finance.transaction.create': 'Buat transaksi', 'finance.transaction.submit': 'Ajukan transaksi', 'finance.transaction.approve': 'Setujui transaksi', 'finance.transaction.approve_high': 'Setujui di atas ambang', 'finance.transaction.post': 'Posting ke ledger', 'finance.transaction.reverse': 'Reversal', 'finance.account.manage': 'Kelola bagan akun & saldo awal', 'finance.report.read': 'Lihat laporan', 'finance.report.export': 'Ekspor laporan', 'finance.reconciliation.manage': 'Rekonsiliasi bank', 'finance.period.close': 'Tutup buku',
   'budget.read': 'Lihat anggaran', 'budget.manage': 'Kelola anggaran', 'letters.read': 'Lihat surat', 'letters.manage': 'Kelola surat', 'docs.read': 'Lihat arsip', 'docs.manage': 'Kelola arsip', 'assets.read': 'Lihat inventaris', 'assets.manage': 'Kelola inventaris', 'events.read': 'Lihat kegiatan', 'events.manage': 'Kelola kegiatan', 'announce.manage': 'Kelola pengumuman', 'jamaah.read': 'Lihat jamaah', 'jamaah.manage': 'Kelola jamaah', 'social.read': 'Lihat ZIS/bantuan', 'social.manage': 'Kelola ZIS/bantuan', 'social.sensitive': 'Lihat data sensitif penerima', 'edu.read': 'Lihat TPQ', 'edu.manage': 'Kelola TPQ', 'qurban.read': 'Lihat qurban', 'qurban.manage': 'Kelola qurban',
-  'users.manage': 'Kelola pengguna', 'roles.manage': 'Kelola peran', 'audit.read': 'Lihat audit log', 'settings.manage': 'Ubah pengaturan', 'system.backup': 'Backup & ekspor data', 'tenants.manage': 'Kelola multi-masjid'
+  'users.manage': 'Kelola pengguna', 'roles.manage': 'Kelola peran', 'audit.read': 'Lihat audit log', 'settings.manage': 'Ubah pengaturan', 'system.backup': 'Backup & ekspor data', 'tenants.manage': 'Kelola multi-masjid', 'yayasan.view': 'Lihat Dashboard Yayasan (lintas masjid)'
 };
 
 /* ---------------- Pengguna & peran ---------------- */
@@ -1564,7 +1565,7 @@ VIEWS.users = {
     $$('[data-t]', el).forEach(function (b) { b.onclick = function () { S.params = { tab: b.dataset.t }; renderView(); }; });
     var B = $('#ub', el), lic = S.boot.license;
     if (tab === 'u') {
-      var roles = Object.keys(ROLE_L).filter(function (r) { return r !== 'SUPER_ADMIN' || can('tenants.manage'); }).map(function (r) { return [r, ROLE_L[r]]; });
+      var roles = Object.keys(ROLE_L).filter(function (r) { return (r !== 'SUPER_ADMIN' && r !== 'PENGURUS_YAYASAN') || can('tenants.manage'); }).map(function (r) { return [r, ROLE_L[r]]; });
       var form = function (u) {
         var f = [{ k: 'name', l: 'Nama', req: true, max: 80 }, { k: 'email', l: 'Email (untuk login)', t: 'email', req: true, max: 120 }, { k: 'role', l: 'Peran', t: 'select', req: true, opts: roles }, { k: 'title', l: 'Jabatan', max: 60 }, { k: 'phone', l: 'No. WA', t: 'tel', max: 20 }];
         if (!u) f.push({ k: 'password', l: 'Kata sandi awal', t: 'text', req: true, minLen: 8, help: 'Min. 8 karakter huruf+angka. Pengguna wajib mengganti saat login pertama.', def: 'Mde' + Math.random().toString(36).slice(2, 8) + '7' });
@@ -2312,6 +2313,86 @@ if (typeof IMPORT_SPEC !== 'undefined') {
   IMPORT_SPEC.speakers = { label: 'pengisi kajian', cols: ['name', 'gender', 'phone', 'specialty', 'affiliation', 'honorDefault', 'active', 'note'], ex: ['Ust. Contoh, Lc.', 'L', '081200000000', 'Tafsir', 'Pesantren Contoh', '300000', 'TRUE', ''], help: 'gender: L (ustadz) / P (ustadzah)' };
 }
 if (typeof FAQ !== 'undefined') FAQ.unshift([['kajian', 'tausiah', 'ustadz', 'ustadzah', 'pengisi', 'penceramah', 'khutbah', 'kehadiran'], '**Kajian & Tausiah:**\n1. Tab **Pengisi** — tambahkan data ustadz/ustadzah (dengan no. WA).\n2. Tab **Kajian rutin** — buat pola (mis. Ahad Subuh setiap pekan), lalu **Buat jadwal bulan ini**.\n3. Setelah kajian selesai: tab **Jadwal** → **Catat kehadiran** — isi jamaah L/P (tombol + / +5 / +10), status pengisi (hadir/terlambat/diganti/tidak hadir), nilai, ringkasan materi, dan foto dokumentasi.\n4. Tab **Evaluasi** — tren jamaah, kehadiran & ketepatan pengisi, rekomendasi otomatis, cetak laporan.\nTombol **Ingatkan via WA** mengirim pengingat jadwal ke pengisi.']);
+
+</script>
+<script>
+/* v2.3 — Dashboard Yayasan: ringkasan agregat seluruh masjid dalam satu instalasi */
+'use strict';
+var YY_SORT = [['score', 'Skor kesehatan (terendah dulu)'], ['cash', 'Saldo kas & bank'], ['income', 'Penerimaan'], ['expense', 'Pengeluaran'], ['surplus', 'Surplus/defisit'], ['budgetPct', 'Realisasi anggaran'], ['pending', 'Menunggu tindakan'], ['kajianAvg', 'Rata-rata jamaah kajian'], ['jamaah', 'Jamaah terdata'], ['name', 'Nama masjid']];
+function yyAllowed() { return can('yayasan.view') && S.boot && S.boot.license && Number(S.boot.license.maxMosques) > 1; }
+function yyScore(n) { return '<span class="badge b-' + (n >= 85 ? 'POSTED' : n >= 60 ? 'SUBMITTED' : 'REJECTED') + '" title="Skor kesehatan data & tata kelola">' + n + '</span>'; }
+function yyBars(items, fmt) {
+  var mx = Math.max.apply(null, items.map(function (x) { return Math.abs(x.v); }).concat([1]));
+  return items.length ? '<div class="list">' + items.map(function (x) { return '<div class="li" style="flex-direction:column;align-items:stretch;gap:4px"><div class="row sp"><span style="font-size:13px">' + esc(x.l) + '</span><b class="nowrap' + (x.v < 0 ? ' amt-out' : '') + '">' + (fmt || rp)(x.v) + (x.s ? ' <small class="muted" style="font-weight:500">' + esc(x.s) + '</small>' : '') + '</b></div><div class="bar' + (x.v < 0 ? ' over' : '') + '"><i style="width:' + Math.max(2, Math.abs(x.v) * 100 / mx) + '%"></i></div></div>'; }).join('') + '</div>' : '<div class="muted">Belum ada data.</div>';
+}
+function yyOpen(id) {
+  if (!can('tenants.manage')) { toast('Hanya Super Admin yang dapat membuka data masjid. Hubungi pengurus masjid terkait.', 'info'); return; }
+  if (id === S.boot.mosque.id) { go('dashboard'); return; }
+  api('auth.switchMosque', { mosqueId: id }).then(function () { return refresh(); }).then(function () { toast('Beralih ke ' + S.boot.mosque.name); go('dashboard'); }).catch(fail);
+}
+
+VIEWS.yayasan = {
+  t: 'Dashboard Yayasan', perm: yyAllowed, render: function (el, p) {
+    var year = (p && p.year) || today().slice(0, 4), key = 'mde.yys.' + year, cached = S.yys && S.yys.year === year ? S.yys : lsGet(key, null);
+    var load = function (force) {
+      if (!S.online && cached) { draw(cached, true); return; }
+      if (!cached || force) el.innerHTML = '<div class="loader" style="position:static;height:160px"><div class="ring"></div></div>';
+      api('yayasan.dashboard', { year: year }).then(function (d) { S.yys = d; lsSet(key, d); if (S.view === 'yayasan') draw(d); }).catch(function (e) { if (cached) { draw(cached, true); toast(e.message, 'bad'); } else el.innerHTML = '<div class="card err-state">' + esc(e.message) + '</div>'; });
+    };
+    var draw = function (d, stale) {
+      var T = d.totals, L = d.license, sort = (S.params && S.params.sort) || 'score', yNow = Number(today().slice(0, 4));
+      var rows = d.mosques.map(function (m) { return Object.assign({ pending: m.pendingApproval + m.pendingPost }, m); });
+      rows.sort(function (a, b) { if (sort === 'name') return a.name < b.name ? -1 : 1; if (sort === 'score') return a.score - b.score; var x = a[sort] == null ? -1e15 : a[sort], y = b[sort] == null ? -1e15 : b[sort]; return y - x; });
+      var flags = []; d.mosques.forEach(function (m) { m.flags.forEach(function (f) { flags.push({ lvl: f[0], t: f[1], m: m }); }); });
+      var rank = { bad: 0, warn: 1, info: 2 }; flags.sort(function (a, b) { return rank[a.lvl] - rank[b.lvl]; });
+      var kpi = function (l, v, s, i) { return '<div class="card kpi"><div class="kic">' + ic(i) + '</div><div><small>' + l + '</small><b>' + v + '</b><small>' + s + '</small></div></div>'; };
+      var fundsBal = Object.keys(T.funds).filter(function (k) { return Math.abs(T.funds[k]) > 0.5; }).map(function (k) { return { l: d.fundNames[k] || k, v: T.funds[k] }; });
+      el.innerHTML = ph('Dashboard Yayasan', d.mosques.length + ' masjid · lisensi ' + esc(L.label) + ' (' + d.mosques.length + '/' + L.maxMosques + ' masjid, ' + T.users + '/' + L.maxUsers + ' pengguna) · diperbarui ' + wkt(d.generatedAt) + (stale ? ' · <b>data tersimpan (offline)</b>' : ''),
+        '<label class="dl" style="flex:0 1 120px"><span>Tahun</span><select class="in" id="yyy">' + [yNow, yNow - 1, yNow - 2].map(function (y) { return '<option' + (String(y) === d.year ? ' selected' : '') + '>' + y + '</option>'; }).join('') + '</select></label><button class="btn ghost" id="yyr">' + ic('refresh') + ' Muat ulang</button><button class="btn ghost" id="yyc">' + ic('download') + ' CSV</button><button class="btn" id="yyp">' + ic('print') + ' Cetak laporan</button>') +
+        '<div class="alert info" style="margin-bottom:12px">Angka keuangan dihitung dari ledger (transaksi terposting) masing-masing masjid. Halaman ini hanya menampilkan ringkasan agregat tanpa data pribadi jamaah/mustahik; setiap pembukaan tercatat di audit log.</div>' +
+        '<div class="grid g4">' + kpi('Saldo kas & bank gabungan', rp(T.cash), d.mosques.length + ' masjid', 'wallet') + kpi('Penerimaan ' + d.year, rp(T.income), 'seluruh masjid', 'download') + kpi('Pengeluaran ' + d.year, rp(T.expense), (T.surplus >= 0 ? 'surplus ' : 'defisit ') + rp(Math.abs(T.surplus)), 'upload') + kpi('Menunggu tindakan', num(T.pendingApproval + T.pendingPost), T.pendingApproval + ' persetujuan · ' + T.pendingPost + ' posting', 'clock') + '</div>' +
+        '<div class="grid g4" style="margin-top:14px">' + kpi('Pengurus aktif', num(T.users), T.usersActive30 + ' login 30 hari terakhir', 'users') + kpi('Jamaah terdata', num(T.jamaah), num(T.mustahik) + ' mustahik aktif', 'heart') + kpi('Penyaluran bantuan ' + d.year, rp(T.aidYear), num(T.students) + ' santri TPQ aktif', 'gift') + kpi('Kajian 90 hari', num(T.kajianDone) + ' sesi', 'rata-rata ' + num(T.kajianAvg) + ' jamaah', 'mic') + '</div>' +
+        '<div class="grid g3" style="margin-top:14px"><div class="card" style="grid-column:span 2"><h3>Penerimaan vs pengeluaran gabungan ' + d.year + '</h3>' + barChart(T.monthly.map(function (x) { return { label: BLN[x.m - 1], a: x.income, b: x.expense }; }), ['a', 'b'], ['var(--p)', 'var(--acc)'], ['Penerimaan', 'Pengeluaran']) + '</div><div class="card"><h3>Saldo gabungan per dana</h3>' + (fundsBal.length ? donut(fundsBal.map(function (f) { return { l: f.l, v: f.v }; })) : '<div class="muted">Belum ada saldo.</div>') + '</div></div>' +
+        '<div class="card" style="margin-top:14px"><div class="row sp"><h3>Perlu perhatian</h3><small class="muted">' + flags.filter(function (f) { return f.lvl !== 'info'; }).length + ' peringatan · ' + flags.filter(function (f) { return f.lvl === 'info'; }).length + ' info</small></div>' +
+        (flags.length ? '<div class="col" style="gap:6px">' + flags.slice(0, 14).map(function (f) { return '<div class="alert ' + ({ bad: 'bad', warn: '', info: 'info' })[f.lvl] + '" style="display:flex;gap:8px;align-items:center;justify-content:space-between"><span><b>' + esc(f.m.name) + '</b> — ' + esc(f.t) + '</span>' + (can('tenants.manage') ? '<button class="btn ghost sm" data-yo="' + f.m.id + '">Buka</button>' : '') + '</div>'; }).join('') + (flags.length > 14 ? '<small class="muted">+' + (flags.length - 14) + ' lainnya — lihat kolom skor di tabel.</small>' : '') + '</div>' : '<div class="alert ok">Alhamdulillah, tidak ada temuan. Semua masjid tertib.</div>') + '</div>' +
+        '<div class="card" style="margin-top:14px"><div class="row sp"><h3>Perbandingan antarmasjid</h3><label class="dl" style="flex:0 1 240px"><span>Urutkan</span><select class="in" id="yys">' + YY_SORT.map(function (s) { return '<option value="' + s[0] + '"' + (s[0] === sort ? ' selected' : '') + '>' + s[1] + '</option>'; }).join('') + '</select></label></div>' +
+        '<div class="tw"><table class="t cards"><thead><tr><th>Masjid</th><th class="r">Skor</th><th class="r">Saldo</th><th class="r">Penerimaan</th><th class="r">Pengeluaran</th><th class="r">Surplus</th><th class="r">Anggaran</th><th class="r">Menunggu</th><th>Posting terakhir</th><th>Layanan</th></tr></thead><tbody>' +
+        rows.map(function (m) { return '<tr' + (can('tenants.manage') ? ' data-yo="' + m.id + '" style="cursor:pointer"' : '') + '><td data-l="Masjid" style="min-width:150px"><div class="cv"><b>' + esc(m.name) + '</b>' + (m.id === S.boot.mosque.id ? ' <span class="badge">aktif</span>' : '') + '<div class="muted" style="font-size:11px">' + esc(m.city || '') + '</div></div></td><td data-l="Skor" class="r">' + yyScore(m.score) + '</td><td data-l="Saldo" class="r nowrap">' + rp(m.cash) + '</td><td data-l="Penerimaan" class="r nowrap amt-in">' + rp(m.income) + '</td><td data-l="Pengeluaran" class="r nowrap amt-out">' + rp(m.expense) + '</td><td data-l="Surplus" class="r nowrap' + (m.surplus < 0 ? ' amt-out' : '') + '">' + rp(m.surplus) + '</td><td data-l="Anggaran" class="r' + (m.budgetPct > 100 ? ' amt-out' : '') + '">' + (m.budgetPct === null ? '—' : m.budgetPct + '%') + '</td><td data-l="Menunggu" class="r">' + (m.pending || '—') + '</td><td data-l="Posting terakhir" class="nowrap">' + (m.lastPost ? tgl(m.lastPost) : '—') + '</td><td data-l="Layanan" style="font-size:11.5px;min-width:150px">' + m.users + ' pengurus (' + m.usersActive30 + ' aktif)<br>' + num(m.jamaah) + ' jamaah' + (m.kajianDone ? '<br>kajian: ' + m.kajianDone + ' sesi, rata ' + num(m.kajianAvg) : '') + '</td></tr>'; }).join('') +
+        '</tbody><tfoot><tr><td>Total</td><td></td><td class="r nowrap">' + rp(T.cash) + '</td><td class="r nowrap">' + rp(T.income) + '</td><td class="r nowrap">' + rp(T.expense) + '</td><td class="r nowrap">' + rp(T.surplus) + '</td><td></td><td class="r">' + (T.pendingApproval + T.pendingPost) + '</td><td></td><td style="font-size:11.5px">' + T.users + ' pengurus · ' + num(T.jamaah) + ' jamaah</td></tr></tfoot></table></div>' +
+        '<p class="muted" style="font-size:11.5px;margin-bottom:0">Skor kesehatan 100 dikurangi temuan: merah −25, kuning −10, info −3. Anggaran = realisasi pengeluaran ÷ anggaran pengeluaran ' + d.year + '. Kajian = rata-rata jamaah × jumlah sesi 90 hari terakhir.' + (can('tenants.manage') ? ' Klik baris untuk membuka masjid tersebut.' : '') + '</p></div>' +
+        '<div class="grid g2" style="margin-top:14px"><div class="card"><h3>Penerimaan per masjid ' + d.year + '</h3>' + yyBars(d.mosques.slice().sort(function (a, b) { return b.income - a.income; }).map(function (m) { return { l: m.name, v: m.income, s: T.income ? Math.round(m.income * 100 / T.income) + '%' : '' }; })) + '</div>' +
+        '<div class="card"><h3>Penerimaan gabungan per dana ' + d.year + '</h3>' + yyBars(Object.keys(T.fundsIn).map(function (k) { return { l: d.fundNames[k] || k, v: T.fundsIn[k] }; }).sort(function (a, b) { return b.v - a.v; })) + '<h3 style="margin-top:16px">Saldo per masjid</h3>' + yyBars(d.mosques.slice().sort(function (a, b) { return b.cash - a.cash; }).map(function (m) { return { l: m.name, v: m.cash }; })) + '</div></div>' +
+        '<div class="card" style="margin-top:14px"><h3>Sebaran masjid</h3><div class="mapbox" id="yym" style="height:360px;border-radius:12px"></div></div>';
+      $('#yyy', el).onchange = function () { S.params = { year: this.value, sort: sort }; renderView(); };
+      $('#yys', el).onchange = function () { S.params = { year: d.year, sort: this.value }; draw(d, stale); };
+      $('#yyr', el).onclick = function () { load(true); };
+      $('#yyc', el).onclick = function () { downloadCsv('yayasan_' + d.year, [{ k: 'name', l: 'Masjid' }, { k: 'city', l: 'Kota' }, { k: 'score', l: 'Skor' }, { k: 'cash', l: 'Saldo kas & bank' }, { k: 'income', l: 'Penerimaan' }, { k: 'expense', l: 'Pengeluaran' }, { k: 'surplus', l: 'Surplus' }, { k: 'budgetPct', l: 'Realisasi anggaran %' }, { k: 'pending', l: 'Menunggu' }, { k: 'lastPost', l: 'Posting terakhir' }, { k: 'users', l: 'Pengurus' }, { k: 'usersActive30', l: 'Login 30 hari' }, { k: 'jamaah', l: 'Jamaah' }, { k: 'mustahik', l: 'Mustahik' }, { k: 'aidYear', l: 'Penyaluran bantuan' }, { k: 'students', l: 'Santri aktif' }, { k: 'assets', l: 'Aset' }, { k: 'kajianDone', l: 'Kajian 90 hari' }, { k: 'kajianAvg', l: 'Rata jamaah kajian' }], rows); };
+      $('#yyp', el).onclick = function () {
+        printDoc('Laporan Konsolidasi Yayasan ' + d.year, '<p>' + d.mosques.length + ' masjid. Saldo kas & bank gabungan <b>' + rp(T.cash) + '</b>; penerimaan ' + rp(T.income) + ', pengeluaran ' + rp(T.expense) + ' (' + (T.surplus >= 0 ? 'surplus ' : 'defisit ') + rp(Math.abs(T.surplus)) + '). Menunggu tindakan: ' + (T.pendingApproval + T.pendingPost) + ' transaksi.</p>' +
+          '<div class="tw"><table class="t"><thead><tr><th>Masjid</th><th class="r">Saldo</th><th class="r">Penerimaan</th><th class="r">Pengeluaran</th><th class="r">Surplus</th><th class="r">Anggaran</th><th class="r">Skor</th></tr></thead><tbody>' + d.mosques.map(function (m) { return '<tr><td>' + esc(m.name) + '</td><td class="r">' + rp(m.cash) + '</td><td class="r">' + rp(m.income) + '</td><td class="r">' + rp(m.expense) + '</td><td class="r">' + rp(m.surplus) + '</td><td class="r">' + (m.budgetPct === null ? '—' : m.budgetPct + '%') + '</td><td class="r">' + m.score + '</td></tr>'; }).join('') + '</tbody><tfoot><tr><td>Total</td><td class="r">' + rp(T.cash) + '</td><td class="r">' + rp(T.income) + '</td><td class="r">' + rp(T.expense) + '</td><td class="r">' + rp(T.surplus) + '</td><td></td><td></td></tr></tfoot></table></div>' +
+          '<h3>Saldo gabungan per dana</h3>' + simpleTable(['Dana', 'Saldo'], fundsBal.map(function (f) { return [esc(f.l), rp(f.v)]; }), rp(T.cash)) +
+          '<h3>Temuan</h3>' + (flags.length ? '<ol>' + flags.map(function (f) { return '<li><b>' + esc(f.m.name) + '</b>: ' + esc(f.t) + '</li>'; }).join('') + '</ol>' : '<p>Tidak ada temuan.</p>') +
+          '<p style="font-size:11px">Sumber: ledger transaksi terposting tiap masjid. Ringkasan agregat tanpa data pribadi.</p>');
+      };
+      $$('[data-yo]', el).forEach(function (b) { b.onclick = function (e) { e.stopPropagation(); yyOpen(b.dataset.yo); }; });
+      var pts = d.mosques.filter(hasXY), mb = $('#yym', el);
+      if (!pts.length) { mb.outerHTML = '<div class="muted">Isi koordinat tiap masjid (Pengaturan → Profil masjid) untuk menampilkan peta.</div>'; return; }
+      loadLeaflet().then(function (L) {
+        if (!document.body.contains(mb)) return;
+        var map = L.map(mb, { scrollWheelZoom: false }); baseLayer(L).addTo(map);
+        var g = L.featureGroup(pts.map(function (m) { return L.marker([m.lat, m.lng], { icon: mosqueIcon(L) }).bindPopup('<b>' + esc(m.name) + '</b><br>Saldo ' + rp(m.cash) + '<br>Penerimaan ' + d.year + ': ' + rp(m.income) + '<br>Skor ' + m.score + (m.kajianDone ? '<br>Kajian: rata-rata ' + m.kajianAvg + ' jamaah' : '')); })).addTo(map);
+        if (pts.length === 1) map.setView([pts[0].lat, pts[0].lng], 14); else map.fitBounds(g.getBounds().pad(0.2));
+      }).catch(function (e) { mb.outerHTML = '<div class="muted">' + esc(e.message) + '</div>'; });
+    };
+    if (cached) draw(cached, !S.online);
+    load(false);
+  }
+};
+/* akses cepat dari Beranda untuk pemegang izin yayasan.view */
+(function () {
+  var _d = VIEWS.dashboard.render;
+  VIEWS.dashboard.render = function (el) { _d(el); if (yyAllowed()) { var h = el.querySelector('.hero'); if (h) h.insertAdjacentHTML('afterend', '<div class="card" style="margin-top:14px;display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap"><div><b>Dashboard Yayasan</b><div class="muted" style="font-size:12.5px">Ringkasan gabungan ' + S.boot.mosques.length + ' masjid: saldo, penerimaan, anggaran, temuan, dan perbandingan.</div></div><button class="btn" data-go="yayasan">' + ic('chart') + ' Buka</button></div>'); } };
+})();
 
 </script>
 <script>
